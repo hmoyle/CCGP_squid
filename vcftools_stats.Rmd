@@ -118,6 +118,10 @@ ggplot(ind_depth,
                  alpha = 0.3, 
                  binwidth = 0.1) +
   theme_light()
+
+summary(ind_depth)
+quantile(ind_depth$depth, 
+         probs = c(0.05, 0.95))
 ```
 
 Proportion of missing data per individual

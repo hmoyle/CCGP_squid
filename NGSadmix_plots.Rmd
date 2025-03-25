@@ -190,3 +190,4 @@ ggplot(K5) +
   geom_vline(xintercept = group_pos$linex)
 ```
 
+all individuals with depths outside of the 90% majority are fully in one ancestral population (anyone below ~4x and above ~8x), though this does not include all samples that are fully in one ancestral population.

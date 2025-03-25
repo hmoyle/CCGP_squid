@@ -47,7 +47,7 @@ plot <- ggplot(data = data,
              alpha = 0.75,
              size = 3.5, 
              shape = 24) +
-  scale_fill_manual(values = wn_colors) +
+ scale_fill_manual(values = wn_colors) +
 ##  scale_shape_manual(values = sp_shapes) +
   theme_bw() +
   theme(panel.grid.minor = element_blank()) +
