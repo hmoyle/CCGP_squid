@@ -1,0 +1,192 @@
+---
+title: "Admixture"
+output: html_notebook
+---
+
+```{r libraries}
+library(tidyverse)
+library(fs)
+```
+
+
+```{r}
+ngsadmix_dir <- "data/hc_pools/bcf_testy/thin_100_1/ngsadmix/maf_0.05" # set NGSadmix outputs directory
+N_K <- 6    # set number of K run
+N_reps <- 4  # set number of reps run
+
+# pull all log files
+log_files <- list.files(ngsadmix_dir, pattern = ".log", full.names = T, recursive=T)
+
+# read in all logs
+all_logs <- lapply(1:length(log_files), FUN = function(i) readLines(log_files[i]))
+
+# make list of the line that starts with "best like=" from all logs, just target 'b'
+library(stringr)
+bestlikes_str_list <- sapply(1:length(log_files), FUN= function(x) all_logs[[x]][which(str_sub(all_logs[[x]], 1, 1) == 'b')])
+
+# make dataframe with 1:N_K and N_reps to add likelihood values
+loglikes <- data.frame(K = rep(2:N_K, each=N_reps))
+
+# add the log likelihood (first number in the string)
+loglikes$loglike<-as.vector(as.numeric( sub("\\D*(\\d+).*", "\\1", bestlikes_str_list) ))
+
+tapply(loglikes$loglike, loglikes$K, FUN= function(x) mean(abs(x))/sd(abs(x)))
+```
+
+```{r}
+sord <- c("California", 
+          "Oregon", 
+          "Alaska")
+
+metadata <- read_csv("data/SquidSequenced20250325.csv") %>%
+  select(PoolName, 
+         NMFS_DNA_ID...6, 
+         GENUS, 
+         SPECIES, 
+         STATE_M,
+         SITE,
+         LATITUDE_M, 
+         LONGITUDE_M) %>%
+  mutate(sfact = factor(STATE_M, 
+                        levels = sord)) %>%
+  arrange(sfact)
+
+temp <- filter(metadata, 
+               PoolName != "squid_7" & PoolName != "squid_8")
+
+tmp <- temp %>%
+  mutate(xpos = 1:n())
+
+group_pos <- tmp %>%
+  group_by(STATE_M) %>%
+  summarise(midx = (min(xpos) - 0.5 + max(xpos) + 0.5)/ 2, 
+            linex = max(xpos) + 0.5) %>%
+  mutate(midy = 1)
+
+
+ngsadmix_files <- dir_ls("data/hc_pools/bcf_testy/thin_100_1/ngsadmix", 
+                         recurse = TRUE, 
+                         glob = "*.qopt_with_sample_names")
+
+ngsAdmix_tib <- lapply(ngsadmix_files, function(x) {
+  read.table(x, 
+             header = TRUE) %>%
+    pivot_longer(cols = -sample, 
+                 names_to = "Qval", 
+                 values_to = "value") %>%
+    mutate(path = x, 
+           .before = sample)
+}) %>%
+  bind_rows() %>%
+  filter(!is.na(value)) %>%
+  mutate(Qval = str_replace(Qval, 
+                            "X", 
+                            "Q")) %>%
+  extract(path, 
+          into = c("K", 
+                   "rep"), 
+          regex = ".*K_([0-9]+)_rep_([0-9]+)/.*$", 
+          convert = TRUE) %>%
+  inner_join(., 
+             metadata, 
+             by = c("sample" = "NMFS_DNA_ID...6"), 
+             relationship = "many-to-many") %>%
+  mutate(sfact = factor(STATE_M, 
+                        levels = sord)) %>%
+  arrange(sfact)
+ 
+```
+
+```{r all_Ks}
+nord <- unique(metadata$NMFS_DNA_ID...6)
+ggplot(ngsAdmix_tib) +
+  geom_col(mapping = aes(x = factor(sample, 
+                                    levels = nord), 
+                         y = value, 
+                         fill = Qval)) + 
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, 
+                                   size = 8, 
+                                   vjust = 0.5)) +
+  facet_grid(K ~ rep) +
+  labs(x = "", 
+       y = "Q value") +
+  geom_vline(xintercept = group_pos$linex)
+```
+
+```{r}
+K2 <- ngsAdmix_tib %>%
+  filter(K == 2)
+
+ggplot(K2) +
+  geom_col(mapping = aes(x = factor(sample, 
+                                    levels = nord), 
+                         y = value, 
+                         fill = Qval)) + 
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, 
+                                   size = 8, 
+                                   vjust = 0.5)) +
+  facet_grid(rep ~ K) +
+  labs(x = "", 
+       y = "Q value") +
+  geom_vline(xintercept = group_pos$linex)
+```
+
+```{r}
+K3 <- ngsAdmix_tib %>%
+  filter(K == 3)
+
+ggplot(K3) +
+  geom_col(mapping = aes(x = factor(sample, 
+                                    levels = nord), 
+                         y = value, 
+                         fill = Qval)) + 
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, 
+                                   size = 8, 
+                                   vjust = 0.5)) +
+  facet_grid(rep ~ K) +
+  labs(x = "", 
+       y = "Q value") +
+  geom_vline(xintercept = group_pos$linex)
+```
+
+```{r}
+K4 <- ngsAdmix_tib %>%
+  filter(K == 4)
+
+ggplot(K4) +
+  geom_col(mapping = aes(x = factor(sample, 
+                                    levels = nord), 
+                         y = value, 
+                         fill = Qval)) + 
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, 
+                                   size = 8, 
+                                   vjust = 0.5)) +
+  facet_grid(rep ~ K) +
+  labs(x = "", 
+       y = "Q value") +
+  geom_vline(xintercept = group_pos$linex)
+```
+
+```{r}
+K5 <- ngsAdmix_tib %>%
+  filter(K == 5)
+
+ggplot(K5) +
+  geom_col(mapping = aes(x = factor(sample, 
+                                    levels = nord), 
+                         y = value, 
+                         fill = Qval)) + 
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, 
+                                   size = 8, 
+                                   vjust = 0.5)) +
+  facet_grid(rep ~ K) +
+  labs(x = "", 
+       y = "Q value") +
+  geom_vline(xintercept = group_pos$linex)
+```
+
