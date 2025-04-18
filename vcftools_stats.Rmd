@@ -11,8 +11,10 @@ This is based off of this tutorial: https://speciationgenomics.github.io/filteri
 library(tidyverse)
 ```
 
-Variant quality
-```{r}
+_"High" coverage CCGP samples_
+
+Variant Stats
+```{r hc_var_data}
 var_qual <- read_delim("data/vcftools_stats/hc-pools_thinned/hc-pools_thinned_CCGP-squid_stats.lqual", 
                        delim = "\t", 
                        col_names = c("chr", "pos", 
@@ -20,21 +22,6 @@ var_qual <- read_delim("data/vcftools_stats/hc-pools_thinned/hc-pools_thinned_CC
                        skip = 1, 
                        show_col_types = FALSE)
 
-ggplot(var_qual,
-       aes(qual)) +
-  geom_density(fill = "thistle",
-               colour = "black",
-               alpha = 0.3) +
-  xlim(0,5000) +
-  theme_light()
-
-summary(var_qual$qual)
-quantile(var_qual$qual, 
-         probs = c(0.05, 0.95))
-```
-
-Variant Depth
-```{r}
 var_depth <- read_delim("data/vcftools_stats/hc-pools_thinned/hc-pools_thinned_CCGP-squid_stats.ldepth.mean", 
                         delim = "\t", 
                         col_names = c("chr", "pos", 
@@ -43,22 +30,6 @@ var_depth <- read_delim("data/vcftools_stats/hc-pools_thinned/hc-pools_thinned_C
                         skip = 1, 
                         show_col_types = FALSE)
 
-ggplot(data = var_depth, 
-       aes(x = mean_depth)) +
-  geom_density(fill = "thistle", 
-               colour = "black", 
-               alpha = 0.3) +
-  xlim(0, 25) +
-  theme_light()
-
-summary(var_depth$mean_depth)
-quantile(var_depth$mean_depth, 
-         probs = c(0.05, 0.95))
-```
-
-
-Variant Missingness
-```{r variant_missingness}
 var_miss <- read_delim("data/vcftools_stats/hc-pools_thinned/hc-pools_thinned_CCGP-squid_stats.lmiss",
                        delim = "\t",
                        col_names = c("chr", "pos",
@@ -67,21 +38,6 @@ var_miss <- read_delim("data/vcftools_stats/hc-pools_thinned/hc-pools_thinned_CC
                        skip = 1, 
                        show_col_types = FALSE)
 
-ggplot(var_miss,
-       aes(fmiss)) +
-  geom_density(fill = "thistle",
-               colour = "black",
-               alpha = 0.3) +
-  theme_light()
-
-summary(var_miss$fmiss)
-quantile(var_miss$fmiss, 
-         probs = c(0.05, 0.75, 0.95))
-```
-
-
-Minor Allele Frequency
-```{r maf}
 var_freq <- read_delim("data/vcftools_stats/hc-pools_thinned/hc-pools_thinned_CCGP-squid_stats.frq",
                        delim = "\t",
                        col_names = c("chr", "pos",
@@ -92,25 +48,76 @@ var_freq <- read_delim("data/vcftools_stats/hc-pools_thinned/hc-pools_thinned_CC
 var_freq$maf <- var_freq %>%
   select(a1, a2) %>%
   apply(1, function(z) min(z))
+```
+
+```{r hc_var_plots}
+ggplot(var_qual,
+       aes(qual)) +
+  geom_density(fill = "thistle",
+               colour = "black",
+               alpha = 0.3) +
+  xlim(0,5000) +
+  theme_light() +
+  labs(title = "Variant quality")
+
+ggplot(data = var_depth, 
+       aes(x = mean_depth)) +
+  geom_density(fill = "thistle", 
+               colour = "black", 
+               alpha = 0.3) +
+  xlim(0, 25) +
+  theme_light() +
+  labs(title = "Variant Depth")
+
+ggplot(var_miss,
+       aes(fmiss)) +
+  geom_density(fill = "thistle",
+               colour = "black",
+               alpha = 0.3) +
+  theme_light() +
+  labs(title = "Variant Missingness")
 
 ggplot(data = var_freq,
        aes(x = maf)) +
   geom_density(fill = "thistle",
                colour = "black",
                alpha = 0.3) +
-  theme_light()
+  theme_light() +
+  labs(title = "Allele Frequency Distribution")
 ```
 
-_Individual Based Statistics_
+```{r hc_var_stats}
+summary(var_qual$qual)
+quantile(var_qual$qual, 
+         probs = c(0.05, 0.95))
 
-Mean depth per individual
-```{r individual_depths}
+summary(var_depth$mean_depth)
+quantile(var_depth$mean_depth, 
+         probs = c(0.05, 0.95))
+
+summary(var_miss$fmiss)
+quantile(var_miss$fmiss, 
+         probs = c(0.05, 0.75, 0.95))
+
+```
+
+Individual-based Stats
+```{r hc_ind_data}
 ind_depth <- read_delim("data/vcftools_stats/hc-pools_thinned/hc-pools_thinned_CCGP-squid_stats.idepth", 
                         delim = "\t", 
                         col_names = c("ind", "nsites", 
                                       "depth"), 
                         skip = 1)
 
+ind_miss <- read_delim("data/vcftools_stats/hc-pools_thinned/hc-pools_thinned_CCGP-squid_stats.imiss", 
+                       delim = "\t", 
+                       col_names = c("ind", "ndata", 
+                                     "nfiltered", 
+                                     "nmiss", "fmiss"), 
+                       skip = 1)
+```
+
+```{r hc_ind_plots}
 ggplot(ind_depth, 
        aes(depth)) +
   geom_histogram(fill = "thistle", 
@@ -118,20 +125,6 @@ ggplot(ind_depth,
                  alpha = 0.3, 
                  binwidth = 0.1) +
   theme_light()
-
-summary(ind_depth)
-quantile(ind_depth$depth, 
-         probs = c(0.05, 0.95))
-```
-
-Proportion of missing data per individual
-```{r individual_missingness}
-ind_miss <- read_delim("data/vcftools_stats/hc-pools_thinned/hc-pools_thinned_CCGP-squid_stats.imiss", 
-                       delim = "\t", 
-                       col_names = c("ind", "ndata", 
-                                     "nfiltered", 
-                                     "nmiss", "fmiss"), 
-                       skip = 1)
 
 ggplot(ind_miss, 
        aes(fmiss)) +
@@ -141,3 +134,148 @@ ggplot(ind_miss,
   theme_light()
 ```
 
+
+```{r hc_ind_stats}
+summary(ind_depth)
+quantile(ind_depth$depth, 
+         probs = c(0.05, 0.95))
+
+summary(ind_miss)
+quantile(ind_miss$fmiss, 
+         probs = c(0.05, 0.95))
+```
+
+
+_Low-coverage CCGP samples_
+
+Variant Stats
+```{r lc_var_data}
+var_qual <- read_delim("data/vcftools_stats/lc-pools_thinned/lc_CCGP-squid_thinned_stats.lqual", 
+                       delim = "\t", 
+                       col_names = c("chr", "pos", 
+                                     "qual"), 
+                       skip = 1, 
+                       show_col_types = FALSE)
+
+var_depth <- read_delim("data/vcftools_stats/lc-pools_thinned/lc_CCGP-squid_thinned_stats.ldepth.mean", 
+                        delim = "\t", 
+                        col_names = c("chr", "pos", 
+                                      "mean_depth", 
+                                      "var_depth"), 
+                        skip = 1, 
+                        show_col_types = FALSE)
+
+var_miss <- read_delim("data/vcftools_stats/lc-pools_thinned/lc_CCGP-squid_thinned_stats.lmiss",
+                       delim = "\t",
+                       col_names = c("chr", "pos",
+                                     "nchr", "nfiltered",
+                                     "nmiss", "fmiss"),
+                       skip = 1, 
+                       show_col_types = FALSE)
+
+var_freq <- read_delim("data/vcftools_stats/lc-pools_thinned/lc_CCGP-squid_thinned_stats.frq",
+                       delim = "\t",
+                       col_names = c("chr", "pos",
+                                     "nalleles", "nchr",
+                                     "a1", "a2"),
+                       skip = 1)
+
+var_freq$maf <- var_freq %>%
+  select(a1, a2) %>%
+  apply(1, function(z) min(z))
+```
+
+```{r lc_var_plots}
+ggplot(var_qual,
+       aes(qual)) +
+  geom_density(fill = "thistle",
+               colour = "black",
+               alpha = 0.3) +
+  xlim(0,5000) +
+  theme_light() +
+  labs(title = "Variant quality")
+
+ggplot(data = var_depth, 
+       aes(x = mean_depth)) +
+  geom_density(fill = "thistle", 
+               colour = "black", 
+               alpha = 0.3) +
+  xlim(0, 25) +
+  theme_light() +
+  labs(title = "Variant Depth")
+
+ggplot(var_miss,
+       aes(fmiss)) +
+  geom_density(fill = "thistle",
+               colour = "black",
+               alpha = 0.3) +
+  theme_light() +
+  labs(title = "Variant Missingness")
+
+ggplot(data = var_freq,
+       aes(x = maf)) +
+  geom_density(fill = "thistle",
+               colour = "black",
+               alpha = 0.3) +
+  theme_light() +
+  labs(title = "Allele Frequency Distribution")
+```
+
+```{r lc_var_stats}
+summary(var_qual$qual)
+quantile(var_qual$qual, 
+         probs = c(0.05, 0.95))
+
+summary(var_depth$mean_depth)
+quantile(var_depth$mean_depth, 
+         probs = c(0.05, 0.95))
+
+summary(var_miss$fmiss)
+quantile(var_miss$fmiss, 
+         probs = c(0.05, 0.75, 0.95))
+
+```
+
+Individual-based Stats
+```{r lc_ind_data}
+ind_depth <- read_delim("data/vcftools_stats/lc-pools_thinned/lc_CCGP-squid_thinned_stats.idepth", 
+                        delim = "\t", 
+                        col_names = c("ind", "nsites", 
+                                      "depth"), 
+                        skip = 1)
+
+ind_miss <- read_delim("data/vcftools_stats/lc-pools_thinned/lc_CCGP-squid_thinned_stats.imiss", 
+                       delim = "\t", 
+                       col_names = c("ind", "ndata", 
+                                     "nfiltered", 
+                                     "nmiss", "fmiss"), 
+                       skip = 1)
+```
+
+```{r lc_ind_plots}
+ggplot(ind_depth, 
+       aes(depth)) +
+  geom_histogram(fill = "thistle", 
+                 colour = "black", 
+                 alpha = 0.3, 
+                 binwidth = 0.1) +
+  theme_light()
+
+ggplot(ind_miss, 
+       aes(fmiss)) +
+  geom_histogram(fill = "thistle", 
+                 colour = "black", 
+                 alpha = 0.3) +
+  theme_light()
+```
+
+
+```{r lc_ind_stats}
+summary(ind_depth)
+quantile(ind_depth$depth, 
+         probs = c(0.05, 0.95))
+
+summary(ind_miss)
+quantile(ind_miss$fmiss, 
+         probs = c(0.05, 0.95))
+```
