@@ -11,9 +11,9 @@ library(RcppCNPy)
 ```
 
 ```{r data_org, echo = FALSE}
-metadata <- read_csv("data/SquidSequenced20250325.csv", 
+metadata <- read_csv("data/SquidSequenced.csv", 
                      show_col_types = FALSE)
-### ALL SAMPLES ###
+### First 108 samples ###
 C <- as.matrix(read.table("data/hc_pools/bcf_testy/thin_100_1/pcangsd/output.cov"))
 NMFS_DNA_ID <- read_lines("data/hc_pools/bcf_testy/thin_100_1/samples.txt")
 e <- eigen(C)
@@ -66,9 +66,7 @@ plot
 
 
 ```{r}
-metadata <- read_csv("data/SquidSequenced20250325.csv", 
-                     show_col_types = FALSE)
-### ALL SAMPLES ###
+### next 128 samples ###
 C <- as.matrix(read.table("data/lc_pools/bcf_pools78/thin_100_1/pcangsd/YU_river-herring_output.cov"))
 NMFS_DNA_ID <- read_lines("data/lc_pools/bcf_pools78/thin_100_1/samples.txt")
 e <- eigen(C)
@@ -113,3 +111,49 @@ plot <- ggplot(data = data2,
 plot
 ```
 
+
+```{r}
+### all samples simply bunged together with bcftools ###
+C <- as.matrix(read.table("data/all_bunged/allCCGP_bunged.pcangsd.output.cov"))
+NMFS_DNA_ID <- read_lines("data/all_bunged/samples.txt")
+e <- eigen(C)
+t <- tibble(PC1 = e$vectors[,1], 
+            PC2 = e$vectors[,2], 
+            PC3 = e$vectors[,3], 
+            PC4 = e$vectors[,4])
+temp <- add_column(t, NMFS_DNA_ID)
+data3 <- left_join(temp, 
+                  metadata, 
+                  by = c("NMFS_DNA_ID" = "NMFS_DNA_ID...6"))
+
+vars2 <- e$values/sum(e$values) * 100
+
+```
+
+```{r all_bunged}
+plot <- ggplot(data = data3,
+               mapping = aes(x = PC1,
+                             y = PC2,
+                             fill = as.character(Sequencer))) +
+  geom_point(size = 3, 
+             shape = 24) + 
+  geom_point(stroke = 0.05,
+             alpha = 0.75,
+             size = 3.5, 
+             shape = 24) +
+## scale_fill_manual(values = wn_colors) +
+##  scale_shape_manual(values = sp_shapes) +
+  theme_bw() +
+  theme(panel.grid.minor = element_blank()) +
+  guides(fill = guide_legend(override.aes = list(shape = 22, 
+                                                 stroke = 0.05, 
+                                                 size = 3)), 
+         shape = guide_legend(override.aes = list(stroke = 0.05, 
+                                                  size = 3))) +
+  labs(fill = "State", 
+       x = paste0("PC1 (",round(vars2[1], 2),"%)"),
+       y = paste0("PC2 (",round(vars2[2], 2),"%)")) +
+  geom_text_repel(mapping = aes(label = HAUL), 
+                  max.overlaps = 25)
+plot
+```
