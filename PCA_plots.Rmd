@@ -10,9 +10,15 @@ library(fs)
 library(RcppCNPy)
 ```
 
+
+Checking for any lane, pool, or sequencer effects:
 ```{r data_org, echo = FALSE}
-metadata <- read_csv("data/SquidSequenced.csv", 
-                     show_col_types = FALSE)
+metadata <- read_csv("data/CCGP_squid-metadata.csv", 
+                     show_col_types = FALSE) %>%
+  select(PoolName, Sequencer, NMFS_DNA_ID...6, 
+         GENUS, SPECIES, COLLECTION_DATE, 
+         LANDFALL_PORT, CRUISE, HAUL, 
+         SITE, STATE_M, LATITUDE_M, LONGITUDE_M)
 ### First 108 samples ###
 C <- as.matrix(read.table("data/hc_pools/bcf_testy/thin_100_1/pcangsd/output.cov"))
 NMFS_DNA_ID <- read_lines("data/hc_pools/bcf_testy/thin_100_1/samples.txt")
@@ -40,14 +46,14 @@ wn_colors <- c(`California` = "steelblue3",
 plot <- ggplot(data = data,
                mapping = aes(x = PC1,
                              y = PC2,
-                             fill = as.character(STATE_M))) +
+                             fill = as.character(LATITUDE_M))) +
   geom_point(size = 3, 
              shape = 24) + 
   geom_point(stroke = 0.05,
              alpha = 0.75,
              size = 3.5, 
              shape = 24) +
- scale_fill_manual(values = wn_colors) +
+## scale_fill_manual(values = wn_colors) +
 ##  scale_shape_manual(values = sp_shapes) +
   theme_bw() +
   theme(panel.grid.minor = element_blank()) +
@@ -67,7 +73,7 @@ plot
 
 ```{r}
 ### next 128 samples ###
-C <- as.matrix(read.table("data/lc_pools/bcf_pools78/thin_100_1/pcangsd/YU_river-herring_output.cov"))
+C <- as.matrix(read.table("data/lc_pools/bcf_pools78/thin_100_1/pcangsd/lc-pools.iter10000.pcangsd.output.cov"))
 NMFS_DNA_ID <- read_lines("data/lc_pools/bcf_pools78/thin_100_1/samples.txt")
 e <- eigen(C)
 t <- tibble(PC1 = e$vectors[,1], 
@@ -87,14 +93,14 @@ vars2 <- e$values/sum(e$values) * 100
 plot <- ggplot(data = data2,
                mapping = aes(x = PC1,
                              y = PC2,
-                             fill = as.character(STATE_M))) +
+                             fill = as.character(LATITUDE_M))) +
   geom_point(size = 3, 
              shape = 24) + 
   geom_point(stroke = 0.05,
              alpha = 0.75,
              size = 3.5, 
              shape = 24) +
- scale_fill_manual(values = wn_colors) +
+## scale_fill_manual(values = wn_colors) +
 ##  scale_shape_manual(values = sp_shapes) +
   theme_bw() +
   theme(panel.grid.minor = element_blank()) +
@@ -106,7 +112,7 @@ plot <- ggplot(data = data2,
   labs(fill = "State", 
        x = paste0("PC1 (",round(vars2[1], 2),"%)"),
        y = paste0("PC2 (",round(vars2[2], 2),"%)")) +
-  geom_text_repel(mapping = aes(label = HAUL), 
+  geom_text_repel(mapping = aes(label = NMFS_DNA_ID), 
                   max.overlaps = 25)
 plot
 ```
@@ -126,7 +132,7 @@ data3 <- left_join(temp,
                   metadata, 
                   by = c("NMFS_DNA_ID" = "NMFS_DNA_ID...6"))
 
-vars2 <- e$values/sum(e$values) * 100
+vars3 <- e$values/sum(e$values) * 100
 
 ```
 
@@ -134,7 +140,7 @@ vars2 <- e$values/sum(e$values) * 100
 plot <- ggplot(data = data3,
                mapping = aes(x = PC1,
                              y = PC2,
-                             fill = as.character(Sequencer))) +
+                             fill = as.character(PoolName))) +
   geom_point(size = 3, 
              shape = 24) + 
   geom_point(stroke = 0.05,
@@ -151,9 +157,9 @@ plot <- ggplot(data = data3,
          shape = guide_legend(override.aes = list(stroke = 0.05, 
                                                   size = 3))) +
   labs(fill = "State", 
-       x = paste0("PC1 (",round(vars2[1], 2),"%)"),
-       y = paste0("PC2 (",round(vars2[2], 2),"%)")) +
-  geom_text_repel(mapping = aes(label = HAUL), 
+       x = paste0("PC1 (",round(vars3[1], 2),"%)"),
+       y = paste0("PC2 (",round(vars3[2], 2),"%)")) +
+  geom_text_repel(mapping = aes(label = NMFS_DNA_ID), 
                   max.overlaps = 25)
 plot
 ```
