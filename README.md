@@ -2,6 +2,7 @@ squid project with UCLA
 ================
 
 NOTES:
+
 2025 April 7: 
 
 Want a specific summary table (like in excel) that groups by cruise/haul. 
@@ -31,3 +32,9 @@ spread across PC1 shows a gradient of ancestry that could be artifactual or base
 check in on thinning, if 100 to 1
 send pdf of both PCAs without extra labeling, and pdfs of ngsadmix results
 - get basic stuff done, then if money from paul comes in we can do more of a deep dive
+
+2025 May 2:
+will be doing regular stuff like what was done for the two separate runs, just together
+ - want nucleotide diversity stats
+ - organize admix results by lat with bins for socal, cencal, norcal?, oregon, and alaska
+ - report due by June 15, will be providing figures and some methods
