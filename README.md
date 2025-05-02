@@ -1,8 +1,7 @@
----
-title: "Squid Notes"
-output: html_notebook
----
+squid project with UCLA
+================
 
+NOTES:
 2025 April 7: 
 
 Want a specific summary table (like in excel) that groups by cruise/haul. 
@@ -28,3 +27,7 @@ first grouping by year and then by lat to test for a gradient
 
 spread across PC1 shows a gradient of ancestry that could be artifactual or based on year/lat
 
+2025 April 23: 
+check in on thinning, if 100 to 1
+send pdf of both PCAs without extra labeling, and pdfs of ngsadmix results
+- get basic stuff done, then if money from paul comes in we can do more of a deep dive

@@ -46,14 +46,14 @@ wn_colors <- c(`California` = "steelblue3",
 plot <- ggplot(data = data,
                mapping = aes(x = PC1,
                              y = PC2,
-                             fill = as.character(LATITUDE_M))) +
+                             fill = as.character(STATE_M))) +
   geom_point(size = 3, 
              shape = 24) + 
   geom_point(stroke = 0.05,
              alpha = 0.75,
              size = 3.5, 
              shape = 24) +
-## scale_fill_manual(values = wn_colors) +
+  scale_fill_manual(values = wn_colors) +
 ##  scale_shape_manual(values = sp_shapes) +
   theme_bw() +
   theme(panel.grid.minor = element_blank()) +
@@ -64,9 +64,9 @@ plot <- ggplot(data = data,
                                                   size = 3))) +
   labs(fill = "STATE_m", 
        x = paste0("PC1 (",round(vars[1], 2),"%)"),
-       y = paste0("PC2 (",round(vars[2], 2),"%)")) +
-  geom_text_repel(mapping = aes(label = HAUL), 
-                  max.overlaps = 25)
+       y = paste0("PC2 (",round(vars[2], 2),"%)")) #+
+  # geom_text_repel(mapping = aes(label = HAUL), 
+  #                 max.overlaps = 25)
 plot
 ```
 
@@ -93,14 +93,14 @@ vars2 <- e$values/sum(e$values) * 100
 plot <- ggplot(data = data2,
                mapping = aes(x = PC1,
                              y = PC2,
-                             fill = as.character(LATITUDE_M))) +
+                             fill = as.character(STATE_M))) +
   geom_point(size = 3, 
              shape = 24) + 
   geom_point(stroke = 0.05,
              alpha = 0.75,
              size = 3.5, 
              shape = 24) +
-## scale_fill_manual(values = wn_colors) +
+ scale_fill_manual(values = wn_colors) +
 ##  scale_shape_manual(values = sp_shapes) +
   theme_bw() +
   theme(panel.grid.minor = element_blank()) +
@@ -111,9 +111,9 @@ plot <- ggplot(data = data2,
                                                   size = 3))) +
   labs(fill = "State", 
        x = paste0("PC1 (",round(vars2[1], 2),"%)"),
-       y = paste0("PC2 (",round(vars2[2], 2),"%)")) +
-  geom_text_repel(mapping = aes(label = NMFS_DNA_ID), 
-                  max.overlaps = 25)
+       y = paste0("PC2 (",round(vars2[2], 2),"%)")) #+
+  # geom_text_repel(mapping = aes(label = NMFS_DNA_ID), 
+  #                 max.overlaps = 25)
 plot
 ```
 
@@ -140,14 +140,14 @@ vars3 <- e$values/sum(e$values) * 100
 plot <- ggplot(data = data3,
                mapping = aes(x = PC1,
                              y = PC2,
-                             fill = as.character(PoolName))) +
+                             fill = as.character(STATE_M))) +
   geom_point(size = 3, 
              shape = 24) + 
   geom_point(stroke = 0.05,
              alpha = 0.75,
              size = 3.5, 
              shape = 24) +
-## scale_fill_manual(values = wn_colors) +
+ scale_fill_manual(values = wn_colors) +
 ##  scale_shape_manual(values = sp_shapes) +
   theme_bw() +
   theme(panel.grid.minor = element_blank()) +

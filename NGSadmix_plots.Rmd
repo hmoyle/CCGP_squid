@@ -38,7 +38,7 @@ sord <- c("California",
           "Oregon", 
           "Alaska")
 
-metadata <- read_csv("data/SquidSequenced20250325.csv") %>%
+metadata <- read_csv("data/CCGP_squid-metadata.csv") %>%
   select(PoolName, 
          NMFS_DNA_ID...6, 
          GENUS, 
@@ -49,10 +49,10 @@ metadata <- read_csv("data/SquidSequenced20250325.csv") %>%
          LONGITUDE_M) %>%
   mutate(sfact = factor(STATE_M, 
                         levels = sord)) %>%
-  arrange(sfact)
+  arrange(sfact, LATITUDE_M)
 
 temp <- filter(metadata, 
-               PoolName != "squid_7" & PoolName != "squid_8")
+               PoolName == "squid_7" | PoolName == "squid_8")
 
 tmp <- temp %>%
   mutate(xpos = 1:n())
@@ -64,7 +64,7 @@ group_pos <- tmp %>%
   mutate(midy = 1)
 
 
-ngsadmix_files <- dir_ls("data/hc_pools/bcf_testy/thin_100_1/ngsadmix", 
+ngsadmix_files <- dir_ls("data/lc_pools/bcf_pools78/thin_100_1/ngsadmix", 
                          recurse = TRUE, 
                          glob = "*.qopt_with_sample_names")
 
@@ -93,13 +93,14 @@ ngsAdmix_tib <- lapply(ngsadmix_files, function(x) {
              relationship = "many-to-many") %>%
   mutate(sfact = factor(STATE_M, 
                         levels = sord)) %>%
-  arrange(sfact)
+  arrange(sfact) %>%
+  filter(K != 1)
  
 ```
 
 ```{r all_Ks}
 nord <- unique(metadata$NMFS_DNA_ID...6)
-ggplot(ngsAdmix_tib) +
+ggplot(filter(ngsAdmix_tib, rep == 1)) +
   geom_col(mapping = aes(x = factor(sample, 
                                     levels = nord), 
                          y = value, 
@@ -189,5 +190,3 @@ ggplot(K5) +
        y = "Q value") +
   geom_vline(xintercept = group_pos$linex)
 ```
-
-all individuals with depths outside of the 90% majority are fully in one ancestral population (anyone below ~4x and above ~8x), though this does not include all samples that are fully in one ancestral population.
