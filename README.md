@@ -31,3 +31,8 @@ SQ0001-4 are from monterey
  - want nucleotide diversity stats
  - organize admix results by lat with bins for socal, cencal, norcal?, oregon, and alaska
  - report due by June 15, will be providing figures and some methods
+ 
+ 2025 May 6:  
+  - first 47 scaffolds account for ~94% of the genome
+  - will still be running the squid data through the entire genome :/
+  
