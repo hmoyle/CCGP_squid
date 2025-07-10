@@ -38,4 +38,9 @@ SQ0001-4 are from monterey
   
 2025 June 30:  
   - finished getting downsampled and filtered squid samples through the pipeline: downsampled to 3X and filtered for ld and 0.25 missingness
-  - pcangsd struggled to run with regular memory and core (just 1 core and 12 threads in the pcangsd command), so I ran it on 20 cores with 40 threads and it ended up using 21.46 GB. In the future, if regular settings aren't working get an interactive session with 25G
+  - pcangsd struggled to run with regular memory and core (just 1 core and 12 threads in the pcangsd command), so I ran it on 20 cores with 40 threads and it ended up using 21.46 GB. In the future, if regular settings aren't working get an interactive session with 25G. 
+  
+2025 July 10:  
+  - pcangsd worked great when I asked for 25G for the interactive session and 20 threads in the pcangsd command
+  - running a subset of the downsampled and filtered squid data, separating out the ccgp samples and the low coverage samples since the full PCA plot shows that the sequencer explains the most variance, so I think that having the PCA plots be separated by sequencer will be the best choice. 
+  
