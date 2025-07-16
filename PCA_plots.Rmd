@@ -18,7 +18,7 @@ metadata <- read_csv("data/CCGP_squid-metadata.csv",
   select(PoolName, Sequencer, NMFS_DNA_ID...6, 
          GENUS, SPECIES, COLLECTION_DATE, 
          LANDFALL_PORT, CRUISE, HAUL, 
-         SITE, STATE_M, LATITUDE_M, LONGITUDE_M)
+         SITE, STATE_M, LATITUDE_M, LONGITUDE_M, REGION, YEAR)
 ### First 108 samples ###
 C <- as.matrix(read.table("data/hc_pools/bcf_testy/thin_100_1/pcangsd/output.cov"))
 NMFS_DNA_ID <- read_lines("data/hc_pools/bcf_testy/thin_100_1/samples.txt")
@@ -140,13 +140,12 @@ vars3 <- e$values/sum(e$values) * 100
 plot <- ggplot(data = data3,
                mapping = aes(x = PC1,
                              y = PC2,
-                             fill = as.character(STATE_M))) +
+                             fill = as.character(Sequencer))) +
   geom_point(size = 3, 
              shape = 24) + 
   geom_point(stroke = 0.05,
              alpha = 0.75,
-             size = 3.5, 
-             shape = 24) +
+             size = 3.5) +
  scale_fill_manual(values = wn_colors) +
 ##  scale_shape_manual(values = sp_shapes) +
   theme_bw() +

@@ -1,0 +1,588 @@
+---
+title: "All Squid Exploratory Analysis"
+output: html_notebook
+---
+
+
+```{r libraries}
+library(tidyverse)
+library(ggrepel)
+library(fs)
+library(RcppCNPy)
+```
+
+
+```{r data_org}
+metadata <- read_csv("data/CCGP_squid-metadata.csv", 
+                     show_col_types = FALSE) %>%
+  select(PoolName, Sequencer, NMFS_DNA_ID...6, 
+         GENUS, SPECIES, COLLECTION_DATE, 
+         LANDFALL_PORT, CRUISE, HAUL, 
+         SITE, STATE_M, LATITUDE_M, LONGITUDE_M, REGION, YEAR)
+
+C <- as.matrix(read.table("data/all_samples/pcangsd/all-squid_ds-3_filtered.cov"))
+NMFS_DNA_ID <- read_lines("data/all_samples/info/all-squid_samples.txt")
+e <- eigen(C)
+t <- tibble(PC1 = e$vectors[,1], 
+            PC2 = e$vectors[,2], 
+            PC3 = e$vectors[,3], 
+            PC4 = e$vectors[,4])
+temp <- add_column(t, NMFS_DNA_ID)
+data <- left_join(temp, 
+                  metadata, 
+                  by = c("NMFS_DNA_ID" = "NMFS_DNA_ID...6"))
+
+vars <- e$values/sum(e$values) * 100
+
+```
+
+```{r PCA_plot}
+rg_colors <- c(`Southern CA` = "#cea6ae", 
+               `Central CA` = "#de6c74", 
+               `Northern CA` = "#821a23", 
+               `OR` = "#509ab7", 
+               `AK` = "#4a3d51")
+st_shapes <- c(`California` = 22, 
+               `Oregon` = 23, 
+               `Alaska` = 24)
+yr_shapes <- c(`2014` = 25, 
+               `2017` = 22, 
+               `2019` = 23, 
+               `2021` = 24, 
+               `2022` = 21)
+sq_shapes <- c(`NovaSeq6000` = 21, 
+               `NovaSeqX25B` = 22)
+
+plot <- ggplot(data = data,
+               mapping = aes(x = PC1,
+                             y = PC2,
+                             fill = as.character(REGION), 
+                             shape = as.character(YEAR))) +
+  geom_point(size = 3, alpha = 0.75) + 
+  geom_point(stroke = 0.05,
+             alpha = 0.75,
+             size = 3.5) +
+  #gghighlight(Sequencer == "NovaSeqX25B") +
+  scale_fill_manual(values = rg_colors) +
+  # scale_fill_viridis_d() +
+  scale_shape_manual(values = yr_shapes) +
+  theme_bw() +
+  theme(panel.grid.minor = element_blank()) +
+  guides(fill = guide_legend(override.aes = list(shape = 22, 
+                                                 stroke = 0.05, 
+                                                 size = 3)), 
+         shape = guide_legend(override.aes = list(stroke = 0.05, 
+                                                  size = 3))) +
+  labs(fill = "Region",
+       shape = "Year",
+       x = paste0("PC1 (",round(vars[1], 2),"%)"),
+       y = paste0("PC2 (",round(vars[2], 2),"%)")) +
+  geom_text_repel(mapping = aes(label = NMFS_DNA_ID),
+                  max.overlaps = 25)
+plot
+```
+
+```{r}
+C <- as.matrix(read.table("data/all_samples/pcangsd/ccgp-pools_ds-3_filtered_pcangsd_iter-1000.cov"))
+NMFS_DNA_ID <- read_lines("data/all_samples/info/ccgp-pools_samples.txt")
+e <- eigen(C)
+t <- tibble(PC1 = e$vectors[,1], 
+            PC2 = e$vectors[,2], 
+            PC3 = e$vectors[,3], 
+            PC4 = e$vectors[,4])
+temp <- add_column(t, NMFS_DNA_ID)
+ccgpfd_data <- left_join(temp, 
+                         metadata, 
+                         by = c("NMFS_DNA_ID" = "NMFS_DNA_ID...6"))
+
+vars <- e$values/sum(e$values) * 100
+
+ccgpfd_plot <- ggplot(data = ccgpfd_data,
+                      mapping = aes(x = PC1,
+                                    y = PC2,
+                                    fill = as.character(REGION), 
+                                    shape = as.character(YEAR))) +
+  geom_point(size = 3, alpha = 0.75) + 
+  geom_point(stroke = 0.05,
+             alpha = 0.75,
+             size = 3.5) +
+  #gghighlight(Sequencer == "NovaSeqX25B") +
+  scale_fill_manual(values = rg_colors) +
+  # scale_fill_viridis_d() +
+  scale_shape_manual(values = yr_shapes) +
+  theme_bw() +
+  theme(panel.grid.minor = element_blank()) +
+  guides(fill = guide_legend(override.aes = list(shape = 22, 
+                                                 stroke = 0.05, 
+                                                 size = 3)), 
+         shape = guide_legend(override.aes = list(stroke = 0.05, 
+                                                  size = 3))) +
+  labs(fill = "Region",
+       shape = "Year",
+       x = paste0("PC1 (",round(vars[1], 2),"%)"),
+       y = paste0("PC2 (",round(vars[2], 2),"%)"), 
+       title = "Filtered CCGP samples, no thinning") +
+  geom_text_repel(mapping = aes(label = NMFS_DNA_ID),
+                  max.overlaps = 25)
+ccgpfd_plot
+```
+
+```{r}
+C <- as.matrix(read.table("data/all_samples/pcangsd/lc-pools_ds-3_filtered_pcangsd_iter-1000.cov"))
+NMFS_DNA_ID <- read_lines("data/all_samples/info/lc-pools_samples.txt")
+e <- eigen(C)
+t <- tibble(PC1 = e$vectors[,1], 
+            PC2 = e$vectors[,2], 
+            PC3 = e$vectors[,3], 
+            PC4 = e$vectors[,4])
+temp <- add_column(t, NMFS_DNA_ID)
+lcfilt_data <- left_join(temp, 
+                         metadata, 
+                         by = c("NMFS_DNA_ID" = "NMFS_DNA_ID...6"))
+
+vars <- e$values/sum(e$values) * 100
+
+lcfilt_plot <- ggplot(data = lcfilt_data,
+                      mapping = aes(x = PC1,
+                                    y = PC2,
+                                    fill = as.character(REGION), 
+                                    shape = as.character(YEAR))) +
+  geom_point(size = 3, alpha = 0.75) + 
+  geom_point(stroke = 0.05,
+             alpha = 0.75,
+             size = 3.5) +
+  #gghighlight(Sequencer == "NovaSeqX25B") +
+  scale_fill_manual(values = rg_colors) +
+  # scale_fill_viridis_d() +
+  scale_shape_manual(values = yr_shapes) +
+  theme_bw() +
+  theme(panel.grid.minor = element_blank()) +
+  guides(fill = guide_legend(override.aes = list(shape = 22, 
+                                                 stroke = 0.05, 
+                                                 size = 3)), 
+         shape = guide_legend(override.aes = list(stroke = 0.05, 
+                                                  size = 3))) +
+  labs(fill = "Region",
+       shape = "Year",
+       x = paste0("PC1 (",round(vars[1], 2),"%)"),
+       y = paste0("PC2 (",round(vars[2], 2),"%)"), 
+       title = "Filtered lc pools, no thinning") +
+  geom_text_repel(mapping = aes(label = NMFS_DNA_ID),
+                  max.overlaps = 25)
+lcfilt_plot
+```
+
+NON-FILTERED DATA
+```{r}
+C <- as.matrix(read.table("data/all_bunged/allCCGP_bunged.pcangsd.output.cov"))
+NMFS_DNA_ID <- read_lines("data/all_bunged/samples.txt")
+e <- eigen(C)
+t <- tibble(PC1 = e$vectors[,1], 
+            PC2 = e$vectors[,2], 
+            PC3 = e$vectors[,3], 
+            PC4 = e$vectors[,4])
+temp <- add_column(t, NMFS_DNA_ID)
+bunged_data <- left_join(temp, 
+                         metadata, 
+                         by = c("NMFS_DNA_ID" = "NMFS_DNA_ID...6"))
+
+vars <- e$values/sum(e$values) * 100
+
+bunged_plot <- ggplot(data = bunged_data,
+                      mapping = aes(x = PC1,
+                                    y = PC2,
+                                    fill = as.character(REGION), 
+                                    shape = as.character(Sequencer))) +
+  geom_point(size = 3, alpha = 0.75) + 
+  geom_point(stroke = 0.05,
+             alpha = 0.75,
+             size = 3.5) +
+ # gghighlight(Sequencer == "NovaSeqX25B") +
+  scale_fill_manual(values = rg_colors) +
+  # scale_fill_viridis_d() +
+  scale_shape_manual(values = sq_shapes) +
+  theme_bw() +
+  theme(panel.grid.minor = element_blank()) +
+  guides(fill = guide_legend(override.aes = list(shape = 22, 
+                                                 stroke = 0.05, 
+                                                 size = 3)), 
+         shape = guide_legend(override.aes = list(stroke = 0.05, 
+                                                  size = 3))) +
+  labs(fill = "Region",
+       shape = "Sequencer",
+       x = paste0("PC1 (",round(vars[1], 2),"%)"),
+       y = paste0("PC2 (",round(vars[2], 2),"%)")) #+
+  # geom_text_repel(mapping = aes(label = HAUL), 
+  #                 max.overlaps = 25)
+bunged_plot
+```
+
+
+Squid Color Palette: #310b1a, #821a23, #de6c74, #4a3d51, #91839a, #9ba2ac, #617ea6, #509ab7, #975733, #cea6ae
+
+```{r data_org_lc}
+
+C <- as.matrix(read.table("data/lc_pools/bcf_pools78/thin_100_1/pcangsd/lc-pools.iter10000.pcangsd.output.cov"))
+NMFS_DNA_ID <- read_lines("data/lc_pools/bcf_pools78/thin_100_1/samples.txt")
+e <- eigen(C)
+t <- tibble(PC1 = e$vectors[,1], 
+            PC2 = e$vectors[,2], 
+            PC3 = e$vectors[,3], 
+            PC4 = e$vectors[,4])
+temp <- add_column(t, NMFS_DNA_ID)
+lc_data <- left_join(temp, 
+                     metadata, 
+                     by = c("NMFS_DNA_ID" = "NMFS_DNA_ID...6"))
+
+vars <- e$values/sum(e$values) * 100
+
+```
+
+```{r PCA_plot_lc}
+
+lc_plot <- ggplot(data = lc_data,
+                  mapping = aes(x = PC1,
+                                y = PC2,
+                                fill = as.character(REGION), 
+                                shape = as.character(YEAR))) +
+  geom_point(size = 3, alpha = 0.75) + 
+  geom_point(stroke = 0.05,
+             alpha = 0.75,
+             size = 3.5) +
+  # gghighlight(REGION == "Northern CA") +
+  scale_fill_manual(values = rg_colors) +
+  # scale_fill_viridis_d() +
+  scale_shape_manual(values = yr_shapes) +
+  theme_bw() +
+  theme(panel.grid.minor = element_blank()) +
+  guides(fill = guide_legend(override.aes = list(shape = 22, 
+                                                 stroke = 0.05, 
+                                                 size = 3)), 
+         shape = guide_legend(override.aes = list(stroke = 0.05, 
+                                                  size = 3))) +
+  labs(fill = "Region",
+       shape = "Year",
+       x = paste0("PC1 (",round(vars[1], 2),"%)"),
+       y = paste0("PC2 (",round(vars[2], 2),"%)"), 
+       title = "Unfiltered low cov samples, 100_1 thinning") +
+  geom_text_repel(mapping = aes(label = NMFS_DNA_ID),
+                  max.overlaps = 25)
+lc_plot
+```
+
+
+```{r data_org_cc}
+
+C <- as.matrix(read.table("data/hc_pools/bcf_testy/thin_100_1/pcangsd/output.cov"))
+NMFS_DNA_ID <- read_lines("data/hc_pools/bcf_testy/thin_100_1/samples.txt")
+e <- eigen(C)
+t <- tibble(PC1 = e$vectors[,1], 
+            PC2 = e$vectors[,2], 
+            PC3 = e$vectors[,3], 
+            PC4 = e$vectors[,4])
+temp <- add_column(t, NMFS_DNA_ID)
+cc_data <- left_join(temp, 
+                     metadata, 
+                     by = c("NMFS_DNA_ID" = "NMFS_DNA_ID...6"))
+
+vars <- e$values/sum(e$values) * 100
+
+```
+
+```{r PCA_plot_cc}
+
+cc_plot <- ggplot(data = cc_data,
+                  mapping = aes(x = PC1,
+                                y = PC2,
+                                fill = as.character(REGION), 
+                                shape = as.character(YEAR))) +
+  geom_point(size = 3, alpha = 0.75) + 
+  geom_point(stroke = 0.05,
+             alpha = 0.75,
+             size = 3.5) +
+  scale_fill_manual(values = rg_colors) +
+  # scale_fill_viridis_d() +
+  scale_shape_manual(values = yr_shapes) +
+  theme_bw() +
+  theme(panel.grid.minor = element_blank()) +
+  guides(fill = guide_legend(override.aes = list(shape = 22, 
+                                                 stroke = 0.05, 
+                                                 size = 3)), 
+         shape = guide_legend(override.aes = list(stroke = 0.05, 
+                                                  size = 3))) +
+  labs(fill = "Region",
+       shape = "Year",
+       x = paste0("PC1 (",round(vars[1], 2),"%)"),
+       y = paste0("PC2 (",round(vars[2], 2),"%)"), 
+       title = "Unfiltered CCGP samples, 100_1 thinned") +
+  geom_text_repel(mapping = aes(label = NMFS_DNA_ID),
+                  max.overlaps = 25)
+cc_plot
+```
+
+Admixture Proportions!!!!
+```{r}
+ngsadmix_dir <- "data/all_samples/ngsadmix/maf_0.05" # set NGSadmix outputs directory
+N_K <- 10    # set number of K run
+N_reps <- 10  # set number of reps run
+
+# pull all log files
+log_files <- list.files(ngsadmix_dir, pattern = ".log", full.names = T, recursive=T)
+
+# read in all logs
+all_logs <- lapply(1:length(log_files), FUN = function(i) readLines(log_files[i]))
+
+# make list of the line that starts with "best like=" from all logs, just target 'b'
+library(stringr)
+bestlikes_str_list <- sapply(1:length(log_files), FUN= function(x) all_logs[[x]][which(str_sub(all_logs[[x]], 1, 1) == 'b')])
+
+# make dataframe with 1:N_K and N_reps to add likelihood values
+loglikes <- data.frame(K = rep(2:N_K, each=N_reps))
+
+# add the log likelihood (first number in the string)
+loglikes$loglike<-as.vector(as.numeric( sub("\\D*(\\d+).*", "\\1", bestlikes_str_list) ))
+
+tapply(loglikes$loglike, loglikes$K, FUN= function(x) mean(abs(x))/sd(abs(x)))
+```
+
+```{r}
+qcolors <- c(`Q1` = "#310b1a", 
+            `Q2` = "#821a23", 
+            `Q3` = "#de6c74", 
+            `Q4` = "#4a3d51", 
+            `Q5` = "#91839a", 
+            `Q6` = "#9ba2ac", 
+            `Q7` = "#617ea6", 
+            `Q8` = "#509ab7", 
+            `Q9` = "#975733", 
+            `Q10` = "#cea6ae")
+ 
+rord <- c("Southern CA", 
+          "Central CA", 
+          "Northern CA", 
+          "OR", 
+          "AK")
+sord <- c("California", 
+          "Oregon", 
+          "Alaska")
+
+metadata <- read_csv("data/CCGP_squid-metadata.csv") %>%
+  select(PoolName, 
+         NMFS_DNA_ID...6, 
+         GENUS, 
+         SPECIES, 
+         STATE_M,
+         SITE,
+         LATITUDE_M, 
+         LONGITUDE_M, 
+         REGION) %>%
+  inner_join(., 
+             as.data.frame(NMFS_DNA_ID), 
+             by = c("NMFS_DNA_ID...6" = "NMFS_DNA_ID")) %>%
+  mutate(newname = paste0(REGION, 
+                          "-", 
+                          NMFS_DNA_ID)) %>%
+  mutate(newname = str_replace_all(newname, 
+                                   " +", 
+                                   "_")) %>%
+  mutate(sfact = factor(STATE_M, 
+                        levels = sord), 
+         rfact = factor(REGION, 
+                        levels = rord)) %>%
+  arrange(sfact, rfact, LATITUDE_M)
+
+nord <- unique(metadata$newname)
+
+tmp <- metadata %>%
+  mutate(xpos = 1:n())
+
+group_pos <- tmp %>%
+  group_by(STATE_M) %>%
+  summarise(midx = (min(xpos) - 0.5 + max(xpos) + 0.5)/ 2, 
+            linex = max(xpos) + 0.5) %>%
+  mutate(midy = 1)
+
+pop_pos <- tmp %>%
+  group_by(STATE_M, REGION) %>%
+  summarise(midx = (min(xpos) - 0.5 + max(xpos) + 0.5) / 2, 
+            linex = max(xpos) + 0.5) %>%
+  mutate(midy = 0)
+
+ngsadmix_files <- dir_ls("data/all_samples/ngsadmix", 
+                         recurse = TRUE, 
+                         glob = "*.qopt_with_sample_names")
+
+ngsAdmix_tib <- lapply(ngsadmix_files, function(x) {
+  read.table(x, 
+             header = TRUE) %>%
+    pivot_longer(cols = -sample, 
+                 names_to = "Qval", 
+                 values_to = "value") %>%
+    mutate(path = x, 
+           .before = sample)
+}) %>%
+  bind_rows() %>%
+  filter(!is.na(value)) %>%
+  mutate(Qval = str_replace(Qval, 
+                            "X", 
+                            "Q")) %>%
+  extract(path, 
+          into = c("K", 
+                   "rep"), 
+          regex = ".*K_([0-9]+)_rep_([0-9]+)/.*$", 
+          convert = TRUE) %>%
+  inner_join(., 
+             metadata, 
+             by = c("sample" = "NMFS_DNA_ID...6"), 
+             relationship = "many-to-many") %>%
+  mutate(sfact = factor(STATE_M, 
+                        levels = sord), 
+         rfact = factor(REGION,
+                        levels = rord)) %>%
+  arrange(sfact, rfact)
+
+```
+
+
+```{r all_Ks}
+plot <- ggplot(filter(ngsAdmix_tib, rep == 1)) + 
+  geom_col(mapping = aes(x = factor(newname, 
+                                    levels = nord), 
+                         y = value, 
+                         fill = Qval)) +
+  #scale_fill_manual(values = qcolors) + 
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, 
+                                   size = 8, 
+                                   vjust = 0.5)) +
+  facet_grid(K ~ rep) +
+  labs(x = "", 
+       y = "Q value") +
+  geom_vline(xintercept = pop_pos$linex, 
+             linetype = 1, 
+             color = "gray25") +
+  geom_vline(xintercept = group_pos$linex)
+
+
+plot
+```
+
+
+```{r K2}
+squid_palette <- c("#310b1a", "#821a23", "#de6c74", "#4a3d51", "#91839a", "#9ba2ac", "#617ea6", "#509ab7", "#975733", "#cea6ae")
+
+K2 <- read.table("data/all_samples/ngsadmix/maf_0.05/K_2_rep_1/output.qopt_with_sample_names", header = TRUE) %>%
+  inner_join(., 
+             metadata, 
+             by = c("sample" = "NMFS_DNA_ID...6"))
+K2_ordered <- K2[order(K2$sfact, K2$rfact),]
+
+tmp <- K2_ordered %>%
+  mutate(xpos = 1:n())
+state_pos <- tmp %>%
+  group_by(STATE_M) %>%
+  summarise(midx = (min(xpos) - 0.5 + max(xpos) +0.5) / 2, 
+            linex = max(xpos)) %>%
+  mutate(midy = 1)
+reg_pos <- tmp %>%
+  group_by(STATE_M, REGION) %>%
+  summarise(midx = (min(xpos) - 0.5), 
+            linex = max(xpos)) %>%
+  mutate(midy = -1)
+
+squid_palette_2 <- c("#310b1a", 
+                      "#de6c74")
+
+barplot(t(K2_ordered[2:4]), 
+         col = squid_palette_2, 
+         names = K2_ordered$sample, 
+         cex.names = 0.5,
+         las = 2,
+         space = 0, 
+         border = NA, 
+         cex.axis = 1, 
+         cex.lab = 1.13, 
+         xpd = NA, 
+         ylab = paste0("Admixture Proportions (K=2)"))
+  abline(v = reg_pos$linex, col = "gray80", lty = 2) 
+  abline(v = state_pos$linex, col = "white") 
+  # text(labels = reg_pos$REGION,
+  #      cex = 0.8,
+  #      srt = 90,
+  #      x = reg_pos$midx + 0.5,
+  #      y = 1.001,
+  #      adj = 0,
+  #      xpd = NA)
+```
+
+
+```{r K3}
+squid_palette <- c("#310b1a", "#821a23", "#de6c74", "#4a3d51", "#91839a", "#9ba2ac", "#617ea6", "#509ab7", "#975733", "#cea6ae")
+
+K3 <- read.table("data/all_samples/ngsadmix/maf_0.05/K_3_rep_1/output.qopt_with_sample_names", header = TRUE) %>%
+  inner_join(., 
+             metadata, 
+             by = c("sample" = "NMFS_DNA_ID...6"))
+K3_ordered <- K3[order(K3$sfact, K3$rfact),]
+
+squid_palette_3 <- c("#de6c74",
+                     "#310b1a",
+                     "#4a3d51")
+
+barplot(t(K3_ordered[2:5]), 
+         col = squid_palette_3, 
+         names = NULL, 
+         cex.names = 0.00001,
+         las = 2,
+         space = 0, 
+         border = NA, 
+         cex.axis = 1, 
+         cex.lab = 1.13, 
+         xpd = NA, 
+         ylab = paste0("Admixture Proportions (K=3)"))
+  abline(v = reg_pos$linex, col = "gray80", lty = 2) 
+  abline(v = state_pos$linex, col = "white") 
+  # text(labels = reg_pos$REGION,
+  #      cex = 0.8,
+  #      srt = 90,
+  #      x = reg_pos$midx + 0.5,
+  #      y = 1.001,
+  #      adj = 0,
+  #      xpd = NA)
+```
+
+```{r K4}
+squid_palette <- c("#310b1a", "#821a23", "#de6c74", "#4a3d51", "#91839a", "#9ba2ac", "#617ea6", "#509ab7", "#975733", "#cea6ae")
+
+K4 <- read.table("data/all_samples/ngsadmix/maf_0.05/K_4_rep_1/output.qopt_with_sample_names", header = TRUE) %>%
+  inner_join(., 
+             metadata, 
+             by = c("sample" = "NMFS_DNA_ID...6"))
+K4_ordered <- K4[order(K4$sfact, K4$rfact),]
+
+squid_palette_4 <- c("#de6c74",
+                     "#310b1a",
+                     "#4a3d51", 
+                     "#509ab7")
+
+barplot(t(K4_ordered[2:6]), 
+         col = squid_palette_4, 
+         names = NULL, 
+         cex.names = 0.00001,
+         las = 2,
+         space = 0, 
+         border = NA, 
+         cex.axis = 1, 
+         cex.lab = 1.13, 
+         xpd = NA, 
+         ylab = paste0("Admixture Proportions (K=4)"))
+  abline(v = reg_pos$linex, col = "gray80", lty = 2) 
+  abline(v = state_pos$linex, col = "white") 
+  # text(labels = reg_pos$REGION, 
+  #      cex = 2, 
+  #      srt = 90,
+  #      x = reg_pos$midx + 0.5, 
+  #      y = 1.001, 
+  #      adj = 0, 
+  #      xpd = NA)
+```

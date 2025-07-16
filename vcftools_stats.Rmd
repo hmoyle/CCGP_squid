@@ -279,3 +279,39 @@ summary(ind_miss)
 quantile(ind_miss$fmiss, 
          probs = c(0.05, 0.95))
 ```
+
+
+
+Downsampled data!
+
+```{r ds_ind_data}
+ind_depth <- read_delim("data/all_samples/vcftools_summary_stats/pre_filter_stats/all-squid_ds-3_pass-maf-0.01.idepth", 
+                        delim = "\t", 
+                        col_names = c("ind", "nsites", 
+                                      "depth"), 
+                        skip = 1)
+
+ind_miss <- read_delim("data/all_samples/vcftools_summary_stats/pre_filter_stats/all-squid_ds-3_pass-maf-0.01.imiss", 
+                       delim = "\t", 
+                       col_names = c("ind", "ndata", 
+                                     "nfiltered", 
+                                     "nmiss", "fmiss"), 
+                       skip = 1)
+```
+
+```{r ds_ind_plots}
+ggplot(ind_depth, 
+       aes(depth)) +
+  geom_histogram(fill = "thistle", 
+                 colour = "black", 
+                 alpha = 0.3, 
+                 binwidth = 0.1) +
+  theme_light()
+
+ggplot(ind_miss, 
+       aes(fmiss)) +
+  geom_histogram(fill = "thistle", 
+                 colour = "black", 
+                 alpha = 0.3) +
+  theme_light()
+```
